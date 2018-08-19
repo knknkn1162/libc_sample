@@ -11,7 +11,10 @@ char *getpass_r(const char *prompt, char *buf, size_t len) {
   struct termios term;
   FILE *fp, *outfp;
   int echo = 0;
+  int ch, i;
+  char *p;
 
+  //  generate terminal pathname
   char *ttyName = ctermid(NULL);
   if((outfp = fp = fopen(ttyName, "w+")) == NULL) {
     outfp = stderr;
@@ -37,7 +40,13 @@ char *getpass_r(const char *prompt, char *buf, size_t len) {
     fputs(prompt, outfp);
   }
 
-  fgets(buf, BUF_SIZE, fp);
+  //fgets(buf, BUF_SIZE, fp); // replace '\n' with '\0' anyway!
+  for(p = buf, i = 0; (ch = getc(fp)) != EOF && ch != '\n'; i++) {
+    if(i < BUF_SIZE) {
+      *p++ = ch;
+    }
+  }
+  *p = '\0';
 
   write(fileno(outfp), "\n", 1);
 
